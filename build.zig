@@ -13,11 +13,18 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    const math = b.addModule("math", .{
+        .root_source_file = b.path("lib/math/root.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const raytracer = b.addModule("raytracer", .{
         .root_source_file = b.path("lib/raytracer/root.zig"),
         .target = target,
         .optimize = optimize,
     });
+    raytracer.addImport("math", math);
 
     app.root_module.addImport("raytracer", raytracer);
 
