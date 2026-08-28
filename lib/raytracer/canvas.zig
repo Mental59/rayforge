@@ -35,21 +35,21 @@ pub fn Canvas(comptime T: type) type {
             self.allocator.free(self.data);
         }
 
-        pub fn get_at(self: Self, row: usize, col: usize) Color {
+        pub fn getAt(self: Self, row: usize, col: usize) Color {
             std.debug.assert(row < self.height and col < self.width);
 
-            const index = self.get_index(row, col);
+            const index = self.getIndex(row, col);
             return self.data[index];
         }
 
-        pub fn set_at(self: *Self, row: usize, col: usize, value: Color) void {
+        pub fn setAt(self: *Self, row: usize, col: usize, value: Color) void {
             std.debug.assert(row < self.height and col < self.width);
 
-            const index = self.get_index(row, col);
+            const index = self.getIndex(row, col);
             self.data[index] = value;
         }
 
-        pub fn write_ppm(self: Self, writer: *std.Io.File.Writer) !void {
+        pub fn writePPM(self: Self, writer: *std.Io.File.Writer) !void {
             try writer.interface.print(
                 "P3\n{d} {d}\n255\n",
                 .{ self.width, self.height },
@@ -57,7 +57,7 @@ pub fn Canvas(comptime T: type) type {
 
             for (0..self.height) |i| {
                 for (0..self.width) |j| {
-                    const index = self.get_index(i, j);
+                    const index = self.getIndex(i, j);
                     const color = self.data[index];
 
                     const r: u8 = @intFromFloat(color.r * 255.0);
@@ -69,7 +69,7 @@ pub fn Canvas(comptime T: type) type {
             }
         }
 
-        fn get_index(self: Self, row: usize, col: usize) usize {
+        fn getIndex(self: Self, row: usize, col: usize) usize {
             return row * self.width + col;
         }
     };

@@ -18,7 +18,7 @@ pub fn main() !void {
         std.debug.print("\rScanlines remaining: {d}", .{canvas.height - i});
 
         for (0..canvas.width) |j| {
-            canvas.set_at(
+            canvas.setAt(
                 i,
                 j,
                 .{
@@ -32,7 +32,7 @@ pub fn main() !void {
 
     std.debug.print("\rWriting ppm output...            ", .{});
 
-    try canvas.write_ppm(&stdout_file_writer);
+    try canvas.writePPM(&stdout_file_writer);
     try stdout_file_writer.flush();
 
     std.debug.print("\rDone.                       \n", .{});
