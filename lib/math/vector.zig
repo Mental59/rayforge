@@ -8,6 +8,10 @@ pub fn zero() Vec4 {
     return .{ 0.0, 0.0, 0.0, 0.0 };
 }
 
+pub fn splat(v: f32) Vec4 {
+    return @splat(v);
+}
+
 pub fn dot(a: Vec4, b: Vec4) f32 {
     return @reduce(.Add, a * b);
 }

@@ -12,6 +12,8 @@ pub fn Canvas(comptime T: type) type {
             r: T,
             g: T,
             b: T,
+
+            pub const zero: Color = .{ .r = 0.0, .g = 0.0, .b = 0.0 };
         };
 
         width: usize,
@@ -67,6 +69,10 @@ pub fn Canvas(comptime T: type) type {
                     try writer.interface.print("{d} {d} {d}\n", .{ r, g, b });
                 }
             }
+        }
+
+        pub fn getAspectRatio(self: Self) f32 {
+            return @as(f32, @floatFromInt(self.width)) / @as(f32, @floatFromInt(self.height));
         }
 
         fn getIndex(self: Self, row: usize, col: usize) usize {
