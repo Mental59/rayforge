@@ -61,7 +61,7 @@ pub fn main() !void {
             const ray_direction: Vec4 = pixel_center - camera_center;
             const ray: raytracer.Ray = .init(camera_center, ray_direction);
 
-            const pixel_color = getRayColor(&ray);
+            const pixel_color = getRayColor(ray);
             canvas.setAt(i, j, pixel_color);
         }
     }
@@ -74,7 +74,12 @@ pub fn main() !void {
     std.debug.print("\rDone.                          \n", .{});
 }
 
-fn getRayColor(ray: *const raytracer.Ray) Canvas.Color {
+fn getRayColor(ray: raytracer.Ray) Canvas.Color {
+    const sphere: raytracer.Sphere = .init(.{ 0.0, 0.0, -1.0, 0.0 }, 0.5);
+    if (sphere.hitSphereByRay(ray)) {
+        return .{ .r = 1.0, .g = 0.0, .b = 0.0 };
+    }
+
     const unit_direction: Vec4 = vector.normalized(ray.direction);
     const a = 0.5 * (unit_direction[1] + 1.0);
     const color = vector.splat(1.0 - a) * vector.initVec4(1.0, 1.0, 1.0, 1.0) + vector.splat(a) * vector.initVec4(0.5, 0.7, 1.0, 1.0);
