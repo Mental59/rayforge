@@ -76,8 +76,9 @@ pub fn main() !void {
 
 fn getRayColor(ray: raytracer.Ray) Canvas.Color {
     const sphere: raytracer.Sphere = .init(.{ 0.0, 0.0, -1.0, 0.0 }, 0.5);
-    if (sphere.hitSphereByRay(ray)) {
-        return .{ .r = 1.0, .g = 0.0, .b = 0.0 };
+    if (sphere.hitSphereByRay(ray)) |hit| {
+        const color = vector.splat(0.5) * (hit.normal + vector.splat(1));
+        return .{ .r = color[0], .g = color[1], .b = color[2] };
     }
 
     const unit_direction: Vec4 = vector.normalized(ray.direction);

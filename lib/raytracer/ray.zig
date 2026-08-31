@@ -11,6 +11,6 @@ pub const Ray = struct {
     }
 
     pub fn at(self: Ray, t: f32) vector.Vec4 {
-        return self.origin + t * self.direction;
+        return self.origin + vector.splat(t) * self.direction;
     }
 };
