@@ -75,8 +75,14 @@ pub fn main() !void {
 }
 
 fn getRayColor(ray: raytracer.Ray) Canvas.Color {
-    const sphere: raytracer.Sphere = .init(.{ 0.0, 0.0, -1.0, 0.0 }, 0.5);
-    if (sphere.hitSphereByRay(ray)) |hit| {
+    var sphere: raytracer.Sphere = .init(.{ 0.0, 0.0, -1.0, 0.0 }, 0.5);
+    const hittable = sphere.hittable();
+
+    const hit_res = hittable.hit(
+        ray,
+        .{ .tmin = 0.0, .tmax = std.math.inf(f32) },
+    );
+    if (hit_res) |hit| {
         const color = vector.splat(0.5) * (hit.normal + vector.splat(1));
         return .{ .r = color[0], .g = color[1], .b = color[2] };
     }
