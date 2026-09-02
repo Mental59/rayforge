@@ -47,11 +47,8 @@ pub const Sphere = struct {
         const point: Vec4 = ray.at(root);
         const normal: Vec4 = (point - self.center) / vector.splat(self.radius);
 
-        return .{
-            .point = point,
-            .normal = normal,
-            .t = root,
-        };
+        const hit_result: HitResult = .init(ray, point, normal, root);
+        return hit_result;
     }
 
     fn isRootInRange(root: f32, tmin: f32, tmax: f32) bool {
@@ -63,6 +60,17 @@ pub const HitResult = struct {
     point: Vec4,
     normal: Vec4,
     t: f32,
+    is_front_face: bool,
+
+    pub fn init(ray: Ray, point: Vec4, normal: Vec4, t: f32) HitResult {
+        const is_front_face = vector.dot(ray.direction, normal) < 0.0;
+        return .{
+            .point = point,
+            .normal = if (is_front_face) normal else -normal,
+            .t = t,
+            .is_front_face = is_front_face,
+        };
+    }
 };
 
 pub const HitOptions = struct { tmin: f32, tmax: f32 };
