@@ -52,6 +52,13 @@ pub fn main() !void {
     var canvas: Canvas = try .init(image_width, image_height, debug_allocator.allocator());
     defer canvas.deinit();
 
+    var world: raytracer.World = try .init(debug_allocator.allocator(), 1024);
+    defer world.deinit();
+
+    try world.addSphere(
+        .init(.{ 0.0, 0.0, -1.0, 0.0 }, 0.5),
+    );
+
     for (0..canvas.height) |i| {
         std.debug.print("\rScanlines remaining: {d}", .{canvas.height - i});
 
@@ -61,7 +68,7 @@ pub fn main() !void {
             const ray_direction: Vec4 = pixel_center - camera_center;
             const ray: raytracer.Ray = .init(camera_center, ray_direction);
 
-            const pixel_color = getRayColor(ray);
+            const pixel_color = getRayColor(ray, world);
             canvas.setAt(i, j, pixel_color);
         }
     }
@@ -74,14 +81,8 @@ pub fn main() !void {
     std.debug.print("\rDone.                          \n", .{});
 }
 
-fn getRayColor(ray: raytracer.Ray) Canvas.Color {
-    var sphere: raytracer.Sphere = .init(.{ 0.0, 0.0, -1.0, 0.0 }, 0.5);
-    const hittable = sphere.hittable();
-
-    const hit_res = hittable.hit(
-        ray,
-        .{ .tmin = 0.0, .tmax = std.math.inf(f32) },
-    );
+fn getRayColor(ray: raytracer.Ray, world: raytracer.World) Canvas.Color {
+    const hit_res = world.hit(ray);
     if (hit_res) |hit| {
         const color = vector.splat(0.5) * (hit.normal + vector.splat(1));
         return .{ .r = color[0], .g = color[1], .b = color[2] };

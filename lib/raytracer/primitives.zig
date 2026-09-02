@@ -14,15 +14,15 @@ pub const Sphere = struct {
         return .{ .center = center, .radius = radius };
     }
 
-    pub fn hittable(self: *Sphere) IHittable {
+    pub fn hittable(self: *const Sphere) IHittable {
         return .{
             .ptr = self,
             .vtable = &vtable,
         };
     }
 
-    fn hit(ptr: *anyopaque, ray: Ray, options: HitOptions) ?HitResult {
-        const self: *Sphere = @ptrCast(@alignCast(ptr));
+    fn hit(ptr: *const anyopaque, ray: Ray, options: HitOptions) ?HitResult {
+        const self: *const Sphere = @ptrCast(@alignCast(ptr));
 
         const oc: Vec4 = self.center - ray.origin;
 
@@ -76,12 +76,12 @@ pub const HitResult = struct {
 pub const HitOptions = struct { tmin: f32, tmax: f32 };
 
 pub const IHittable = struct {
-    ptr: *anyopaque,
+    ptr: *const anyopaque,
     vtable: *const VTable,
 
     pub const VTable = struct {
         hit: *const fn (
-            *anyopaque,
+            *const anyopaque,
             ray: Ray,
             options: HitOptions,
         ) ?HitResult,
