@@ -28,7 +28,7 @@ pub const World = struct {
 
     pub fn hit(self: World, ray: Ray) ?HitResult {
         var final_hit_result: ?HitResult = null;
-        var closest_hit_t = std.math.floatMax(f32);
+        var closest_hit_t = std.math.inf(f32);
 
         for (self.spheres.items) |sphere| {
             if (sphere.hittable().hit(
