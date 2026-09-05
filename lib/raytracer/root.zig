@@ -1,4 +1,6 @@
-pub const vector = @import("math").vector;
+const math = @import("math");
+pub const vector = math.vector;
+pub const Interval = math.Interval;
 
 pub const Canvas = @import("canvas.zig").Canvas;
 pub const Ray = @import("ray.zig").Ray;

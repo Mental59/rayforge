@@ -58,6 +58,9 @@ pub fn main() !void {
     try world.addSphere(
         .init(.{ 0.0, 0.0, -1.0, 0.0 }, 0.5),
     );
+    try world.addSphere(
+        .init(.{ 0.0, -100.5, -1.0, 0.0 }, 100),
+    );
 
     for (0..canvas.height) |i| {
         std.debug.print("\rScanlines remaining: {d}", .{canvas.height - i});

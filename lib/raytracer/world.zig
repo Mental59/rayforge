@@ -33,7 +33,7 @@ pub const World = struct {
         for (self.spheres.items) |sphere| {
             if (sphere.hittable().hit(
                 ray,
-                .{ .tmin = 0, .tmax = closest_hit_t },
+                .{ .ray_t = .init(0, closest_hit_t) },
             )) |hit_res| {
                 final_hit_result = hit_res;
                 closest_hit_t = hit_res.t;

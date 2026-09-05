@@ -1,5 +1,7 @@
+const root_module = @import("root.zig");
 const Ray = @import("ray.zig").Ray;
-const vector = @import("root.zig").vector;
+const vector = root_module.vector;
+const Interval = root_module.Interval;
 const Vec4 = vector.Vec4;
 
 pub const Sphere = struct {
@@ -37,9 +39,9 @@ pub const Sphere = struct {
 
         // Find the nearest root that lies in the acceptable range
         var root = (h - @sqrt(discriminant)) / a;
-        if (!isRootInRange(root, options.tmin, options.tmax)) {
+        if (!options.ray_t.surrounds(root)) {
             root = (h + @sqrt(discriminant)) / a;
-            if (!isRootInRange(root, options.tmin, options.tmax)) {
+            if (!options.ray_t.surrounds(root)) {
                 return null;
             }
         }
@@ -73,7 +75,9 @@ pub const HitResult = struct {
     }
 };
 
-pub const HitOptions = struct { tmin: f32, tmax: f32 };
+pub const HitOptions = struct {
+    ray_t: Interval,
+};
 
 pub const IHittable = struct {
     ptr: *const anyopaque,
