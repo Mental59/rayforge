@@ -25,22 +25,39 @@ pub const Camera = struct {
     viewport_upper_left_corner: Vec4 = .{ 0.0, 0.0, 0.0, 0.0 },
     pixel00_loc: Vec4 = .{ 0.0, 0.0, 0.0, 0.0 },
 
+    samples_per_pixel: u32 = 10,
+    pixel_samples_scale: f32 = 0.0,
+
+    prng: std.Random.DefaultPrng,
+    rng: std.Random,
+
     pub const Options = struct {
         image_width: ?u32,
         image_height: ?u32,
         viewport_height: ?f32,
         focal_length: ?f32,
         camera_center: ?Vec4,
+        samples_per_pixel: ?u32,
     };
 
-    pub fn init(options: Options) Camera {
-        var camera: Camera = .{};
+    pub fn init(io: std.Io, options: Options) Camera {
+        var seed: u64 = undefined;
+        io.random(std.mem.asBytes(&seed));
+
+        var prng: std.Random.DefaultPrng = .init(seed);
+        const rng = prng.random();
+
+        var camera: Camera = .{
+            .prng = prng,
+            .rng = rng,
+        };
 
         camera.image_width = options.image_width orelse camera.image_width;
         camera.image_height = options.image_height orelse camera.image_height;
         camera.viewport_height = options.viewport_height orelse camera.viewport_height;
         camera.focal_length = options.focal_length orelse camera.focal_length;
         camera.center = options.camera_center orelse camera.center;
+        camera.samples_per_pixel = options.samples_per_pixel orelse camera.samples_per_pixel;
 
         const float_image_width: f32 = @floatFromInt(camera.image_width);
         const float_image_height: f32 = @floatFromInt(camera.image_height);
@@ -60,16 +77,38 @@ pub const Camera = struct {
         camera.viewport_upper_left_corner = camera.center - vector.initVec4(0.0, 0.0, camera.focal_length, 0.0) - camera.viewport_u / vector.splat(2.0) - camera.viewport_v / vector.splat(2.0);
         camera.pixel00_loc = camera.viewport_upper_left_corner + vector.splat(0.5) * (camera.pixel_delta_u + camera.pixel_delta_v);
 
+        camera.pixel_samples_scale = 1.0 / @as(f32, @floatFromInt(camera.samples_per_pixel));
+
         return camera;
     }
 
     pub fn renderPixel(self: Camera, row: usize, column: usize, world: World) Vec4 {
-        const pixel_center: Vec4 = self.pixel00_loc + (vector.splat(@floatFromInt(row)) * self.pixel_delta_v) + (vector.splat(@floatFromInt(column)) * self.pixel_delta_u);
+        var pixel_color: Vec4 = vector.zero();
+        for (0..self.samples_per_pixel) |_| {
+            const ray = self.getRay(row, column);
+            pixel_color += getRayColor(ray, world);
+        }
+        pixel_color *= vector.splat(self.pixel_samples_scale);
+        return pixel_color;
+    }
 
-        const ray_direction: Vec4 = pixel_center - self.center;
-        const ray: Ray = .init(self.center, ray_direction);
+    fn getRay(self: Camera, row: usize, column: usize) Ray {
+        const float_row: f32 = @floatFromInt(row);
+        const float_column: f32 = @floatFromInt(column);
 
-        return getRayColor(ray, world);
+        const offset = self.sample_square();
+        const pixel_sample: Vec4 = self.pixel00_loc +
+            (vector.splat(float_row + offset[0]) * self.pixel_delta_v) +
+            (vector.splat(float_column + offset[1]) * self.pixel_delta_u);
+
+        const ray_origin: Vec4 = self.center;
+        const ray_direction: Vec4 = pixel_sample - ray_origin;
+
+        return .init(ray_origin, ray_direction);
+    }
+
+    fn sample_square(self: Camera) Vec4 {
+        return .{ self.rng.float(f32) - 0.5, self.rng.float(f32) - 0.5, 0, 0 };
     }
 
     fn getRayColor(ray: Ray, world: World) Vec4 {

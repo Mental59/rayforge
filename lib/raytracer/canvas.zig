@@ -48,7 +48,11 @@ pub fn Canvas(comptime T: type) type {
             std.debug.assert(row < self.height and col < self.width);
 
             const index = self.getIndex(row, col);
-            self.data[index] = value;
+            self.data[index] = .{
+                .r = std.math.clamp(value.r, 0.0, 1.0),
+                .g = std.math.clamp(value.g, 0.0, 1.0),
+                .b = std.math.clamp(value.b, 0.0, 1.0),
+            };
         }
 
         pub fn writePPM(self: Self, writer: *std.Io.File.Writer) !void {

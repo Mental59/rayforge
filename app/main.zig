@@ -5,28 +5,6 @@ const World = raytracer.World;
 const Camera = raytracer.Camera;
 
 pub fn main() !void {
-    const camera_options: Camera.Options = .{
-        .image_width = 1920,
-        .image_height = 1080,
-        .viewport_height = 2.0,
-        .focal_length = 1.0,
-        .camera_center = .{ 0.0, 0.0, 0.0, 0.0 },
-    };
-    const camera: Camera = .init(camera_options);
-
-    std.debug.print(
-        "Image resolution: {d} X {d}\nViewport resolution: {d:.2} X {d:.2}\n",
-        .{ camera.image_width, camera.image_height, camera.viewport_width, camera.viewport_height },
-    );
-    std.debug.print(
-        "Camera info: center={any}, focal_length={d}\n",
-        .{ camera.center, camera.focal_length },
-    );
-    std.debug.print(
-        ("Viewport info: u={any}, v={any}, du={any}, dv={any}, upper_left_corner={any}, pixel00={any}\n"),
-        .{ camera.viewport_u, camera.viewport_v, camera.pixel_delta_u, camera.pixel_delta_v, camera.viewport_upper_left_corner, camera.pixel00_loc },
-    );
-
     var debug_allocator: std.heap.DebugAllocator(.{}) = .init;
     defer _ = debug_allocator.deinit();
 
@@ -35,6 +13,17 @@ pub fn main() !void {
 
     var stdout_buffer: [1024]u8 = undefined;
     var stdout_file_writer: std.Io.File.Writer = .init(.stdout(), threaded.io(), &stdout_buffer);
+
+    const camera_options: Camera.Options = .{
+        .image_width = 1920,
+        .image_height = 1080,
+        .viewport_height = 2.0,
+        .focal_length = 1.0,
+        .camera_center = .{ 0.0, 0.0, 0.0, 0.0 },
+        .samples_per_pixel = 100,
+    };
+    const camera: Camera = .init(threaded.io(), camera_options);
+    std.debug.print("Camera: {any}\n", .{camera});
 
     var canvas: Canvas = try .init(camera.image_width, camera.image_height, debug_allocator.allocator());
     defer canvas.deinit();
@@ -50,8 +39,6 @@ pub fn main() !void {
     );
 
     for (0..canvas.height) |i| {
-        std.debug.print("\rScanlines remaining: {d}", .{canvas.height - i});
-
         for (0..canvas.width) |j| {
             const pixel = camera.renderPixel(i, j, world);
             canvas.setAt(
@@ -64,6 +51,9 @@ pub fn main() !void {
                 },
             );
         }
+
+        const progress: f32 = @as(f32, @floatFromInt(i)) / @as(f32, @floatFromInt(canvas.height - 1));
+        std.debug.print("\rProgress: {d:.2}%", .{progress * 100.0});
     }
 
     std.debug.print("\rWriting ppm output...            ", .{});
