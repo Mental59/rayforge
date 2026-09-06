@@ -22,7 +22,7 @@ pub fn main() !void {
         .camera_center = .{ 0.0, 0.0, 0.0, 0.0 },
         .samples_per_pixel = 100,
     };
-    const camera: Camera = .init(threaded.io(), camera_options);
+    var camera: Camera = .init(threaded.io(), camera_options);
     std.debug.print("Camera: {any}\n", .{camera});
 
     var canvas: Canvas = try .init(camera.image_width, camera.image_height, debug_allocator.allocator());

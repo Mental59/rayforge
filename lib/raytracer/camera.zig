@@ -29,7 +29,6 @@ pub const Camera = struct {
     pixel_samples_scale: f32 = 0.0,
 
     prng: std.Random.DefaultPrng,
-    rng: std.Random,
 
     pub const Options = struct {
         image_width: ?u32,
@@ -44,12 +43,8 @@ pub const Camera = struct {
         var seed: u64 = undefined;
         io.random(std.mem.asBytes(&seed));
 
-        var prng: std.Random.DefaultPrng = .init(seed);
-        const rng = prng.random();
-
         var camera: Camera = .{
-            .prng = prng,
-            .rng = rng,
+            .prng = .init(seed),
         };
 
         camera.image_width = options.image_width orelse camera.image_width;
@@ -82,7 +77,7 @@ pub const Camera = struct {
         return camera;
     }
 
-    pub fn renderPixel(self: Camera, row: usize, column: usize, world: World) Vec4 {
+    pub fn renderPixel(self: *Camera, row: usize, column: usize, world: World) Vec4 {
         var pixel_color: Vec4 = vector.zero();
         for (0..self.samples_per_pixel) |_| {
             const ray = self.getRay(row, column);
@@ -92,7 +87,7 @@ pub const Camera = struct {
         return pixel_color;
     }
 
-    fn getRay(self: Camera, row: usize, column: usize) Ray {
+    fn getRay(self: *Camera, row: usize, column: usize) Ray {
         const float_row: f32 = @floatFromInt(row);
         const float_column: f32 = @floatFromInt(column);
 
@@ -107,8 +102,9 @@ pub const Camera = struct {
         return .init(ray_origin, ray_direction);
     }
 
-    fn sample_square(self: Camera) Vec4 {
-        return .{ self.rng.float(f32) - 0.5, self.rng.float(f32) - 0.5, 0, 0 };
+    fn sample_square(self: *Camera) Vec4 {
+        const rng = self.prng.random();
+        return .{ rng.float(f32) - 0.5, rng.float(f32) - 0.5, 0, 0 };
     }
 
     fn getRayColor(ray: Ray, world: World) Vec4 {
