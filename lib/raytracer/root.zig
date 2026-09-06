@@ -8,3 +8,5 @@ pub const World = @import("world.zig").World;
 
 const primitives = @import("primitives.zig");
 pub const Sphere = primitives.Sphere;
+
+pub const Camera = @import("camera.zig").Camera;
