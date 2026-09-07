@@ -55,8 +55,8 @@ pub fn Canvas(comptime T: type) type {
             };
         }
 
-        pub fn writePPM(self: Self, writer: *std.Io.File.Writer) !void {
-            try writer.interface.print(
+        pub fn writePPM(self: Self, writer: *std.Io.Writer) !void {
+            try writer.print(
                 "P3\n{d} {d}\n255\n",
                 .{ self.width, self.height },
             );
@@ -70,7 +70,7 @@ pub fn Canvas(comptime T: type) type {
                     const g: u8 = @intFromFloat(color.g * 255.0);
                     const b: u8 = @intFromFloat(color.b * 255.0);
 
-                    try writer.interface.print("{d} {d} {d}\n", .{ r, g, b });
+                    try writer.print("{d} {d} {d}\n", .{ r, g, b });
                 }
             }
         }

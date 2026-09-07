@@ -4,15 +4,23 @@ const Canvas = raytracer.Canvas(f32);
 const World = raytracer.World;
 const Camera = raytracer.Camera;
 
-pub fn main() !void {
-    var debug_allocator: std.heap.DebugAllocator(.{}) = .init;
-    defer _ = debug_allocator.deinit();
+pub fn main(init: std.process.Init) !void {
+    const allocator = init.gpa;
 
-    var threaded: std.Io.Threaded = .init(debug_allocator.allocator(), .{});
+    var threaded: std.Io.Threaded = .init(allocator, .{});
+    const io = threaded.io();
     defer threaded.deinit();
 
-    var stdout_buffer: [1024]u8 = undefined;
-    var stdout_file_writer: std.Io.File.Writer = .init(.stdout(), threaded.io(), &stdout_buffer);
+    var stdout_buffer: [4096]u8 = undefined;
+    var stdout_file_writer: std.Io.File.Writer = .init(.stdout(), io, &stdout_buffer);
+    const stdout_writer = &stdout_file_writer.interface;
+
+    const result_file = try std.Io.Dir.cwd().createFile(io, "image.ppm", .{});
+    defer result_file.close(io);
+
+    var result_file_buffer: [4096]u8 = undefined;
+    var result_file_writer: std.Io.File.Writer = .init(result_file, io, &result_file_buffer);
+    const result_writer = &result_file_writer.interface;
 
     const camera_options: Camera.Options = .{
         .image_width = 1920,
@@ -22,13 +30,13 @@ pub fn main() !void {
         .camera_center = .{ 0.0, 0.0, 0.0, 0.0 },
         .samples_per_pixel = 100,
     };
-    var camera: Camera = .init(threaded.io(), camera_options);
-    std.debug.print("Camera: {any}\n", .{camera});
+    const camera: Camera = .init(camera_options);
+    try stdout_writer.print("Camera: {any}\n", .{camera});
 
-    var canvas: Canvas = try .init(camera.image_width, camera.image_height, debug_allocator.allocator());
+    var canvas: Canvas = try .init(camera.image_width, camera.image_height, allocator);
     defer canvas.deinit();
 
-    var world: World = try .init(debug_allocator.allocator(), 1024);
+    var world: World = try .init(allocator, 1024);
     defer world.deinit();
 
     try world.addSphere(
@@ -38,9 +46,14 @@ pub fn main() !void {
         .init(.{ 0.0, -100.5, -1.0, 0.0 }, 100),
     );
 
+    var seed: u64 = undefined;
+    io.random(std.mem.asBytes(&seed));
+    var prng: std.Random.DefaultPrng = .init(seed);
+    const rng = prng.random();
+
     for (0..canvas.height) |i| {
         for (0..canvas.width) |j| {
-            const pixel = camera.renderPixel(i, j, world);
+            const pixel = camera.renderPixel(i, j, world, rng);
             canvas.setAt(
                 i,
                 j,
@@ -53,13 +66,16 @@ pub fn main() !void {
         }
 
         const progress: f32 = @as(f32, @floatFromInt(i)) / @as(f32, @floatFromInt(canvas.height - 1));
-        std.debug.print("\rProgress: {d:.2}%", .{progress * 100.0});
+        try stdout_writer.print("\rProgress: {d:.2}%", .{progress * 100.0});
+        try stdout_writer.flush();
     }
 
-    std.debug.print("\rWriting ppm output...            ", .{});
+    try stdout_writer.print("\rWriting ppm output...            ", .{});
+    try stdout_writer.flush();
 
-    try canvas.writePPM(&stdout_file_writer);
-    try stdout_file_writer.flush();
+    try canvas.writePPM(result_writer);
+    try result_writer.flush();
 
-    std.debug.print("\rDone.                          \n", .{});
+    try stdout_writer.print("\rDone.                          \n", .{});
+    try stdout_writer.flush();
 }

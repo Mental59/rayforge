@@ -28,8 +28,6 @@ pub const Camera = struct {
     samples_per_pixel: u32 = 10,
     pixel_samples_scale: f32 = 0.0,
 
-    prng: std.Random.DefaultPrng,
-
     pub const Options = struct {
         image_width: ?u32,
         image_height: ?u32,
@@ -39,13 +37,8 @@ pub const Camera = struct {
         samples_per_pixel: ?u32,
     };
 
-    pub fn init(io: std.Io, options: Options) Camera {
-        var seed: u64 = undefined;
-        io.random(std.mem.asBytes(&seed));
-
-        var camera: Camera = .{
-            .prng = .init(seed),
-        };
+    pub fn init(options: Options) Camera {
+        var camera: Camera = .{};
 
         camera.image_width = options.image_width orelse camera.image_width;
         camera.image_height = options.image_height orelse camera.image_height;
@@ -77,21 +70,21 @@ pub const Camera = struct {
         return camera;
     }
 
-    pub fn renderPixel(self: *Camera, row: usize, column: usize, world: World) Vec4 {
+    pub fn renderPixel(self: Camera, row: usize, column: usize, world: World, rng: std.Random) Vec4 {
         var pixel_color: Vec4 = vector.zero();
         for (0..self.samples_per_pixel) |_| {
-            const ray = self.getRay(row, column);
+            const ray = self.getRay(row, column, rng);
             pixel_color += getRayColor(ray, world);
         }
         pixel_color *= vector.splat(self.pixel_samples_scale);
         return pixel_color;
     }
 
-    fn getRay(self: *Camera, row: usize, column: usize) Ray {
+    fn getRay(self: Camera, row: usize, column: usize, rng: std.Random) Ray {
         const float_row: f32 = @floatFromInt(row);
         const float_column: f32 = @floatFromInt(column);
 
-        const offset = self.sample_square();
+        const offset = sample_square(rng);
         const pixel_sample: Vec4 = self.pixel00_loc +
             (vector.splat(float_row + offset[0]) * self.pixel_delta_v) +
             (vector.splat(float_column + offset[1]) * self.pixel_delta_u);
@@ -102,8 +95,7 @@ pub const Camera = struct {
         return .init(ray_origin, ray_direction);
     }
 
-    fn sample_square(self: *Camera) Vec4 {
-        const rng = self.prng.random();
+    fn sample_square(rng: std.Random) Vec4 {
         return .{ rng.float(f32) - 0.5, rng.float(f32) - 0.5, 0, 0 };
     }
 
