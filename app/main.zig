@@ -29,6 +29,7 @@ pub fn main(init: std.process.Init) !void {
         .focal_length = 1.0,
         .camera_center = .{ 0.0, 0.0, 0.0, 0.0 },
         .samples_per_pixel = 100,
+        .max_ray_bounces = 50,
     };
     const camera: Camera = .init(camera_options);
     try stdout_writer.print("Camera: {any}\n", .{camera});

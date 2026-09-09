@@ -2,6 +2,7 @@ const std = @import("std");
 const root_module = @import("root.zig");
 const Ray = @import("ray.zig").Ray;
 const World = @import("world.zig").World;
+const rand = root_module.random;
 const vector = root_module.vector;
 const Vec4 = vector.Vec4;
 
@@ -28,6 +29,8 @@ pub const Camera = struct {
     samples_per_pixel: u32 = 10,
     pixel_samples_scale: f32 = 0.0,
 
+    max_ray_bounces: u32 = 10,
+
     pub const Options = struct {
         image_width: ?u32,
         image_height: ?u32,
@@ -35,6 +38,7 @@ pub const Camera = struct {
         focal_length: ?f32,
         camera_center: ?Vec4,
         samples_per_pixel: ?u32,
+        max_ray_bounces: ?u32,
     };
 
     pub fn init(options: Options) Camera {
@@ -46,6 +50,7 @@ pub const Camera = struct {
         camera.focal_length = options.focal_length orelse camera.focal_length;
         camera.center = options.camera_center orelse camera.center;
         camera.samples_per_pixel = options.samples_per_pixel orelse camera.samples_per_pixel;
+        camera.max_ray_bounces = options.max_ray_bounces orelse camera.max_ray_bounces;
 
         const float_image_width: f32 = @floatFromInt(camera.image_width);
         const float_image_height: f32 = @floatFromInt(camera.image_height);
@@ -74,7 +79,12 @@ pub const Camera = struct {
         var pixel_color: Vec4 = vector.zero();
         for (0..self.samples_per_pixel) |_| {
             const ray = self.getRay(row, column, rng);
-            pixel_color += getRayColor(ray, world);
+            pixel_color += self.getRayColor(
+                ray,
+                world,
+                rng,
+                self.max_ray_bounces,
+            );
         }
         pixel_color *= vector.splat(self.pixel_samples_scale);
         return pixel_color;
@@ -96,18 +106,31 @@ pub const Camera = struct {
     }
 
     fn sample_square(rng: std.Random) Vec4 {
-        return .{ rng.float(f32) - 0.5, rng.float(f32) - 0.5, 0, 0 };
+        return .{ rand.randomFloat(rng) - 0.5, rand.randomFloat(rng) - 0.5, 0, 0 };
     }
 
-    fn getRayColor(ray: Ray, world: World) Vec4 {
-        const hit_res = world.hit(ray);
+    fn getRayColor(self: Camera, ray: Ray, world: World, rng: std.Random, depth: u32) Vec4 {
+        if (depth <= 0) {
+            return vector.zero();
+        }
+
+        const hit_res = world.hit(
+            ray,
+            0.001,
+        );
         if (hit_res) |hit| {
-            const color = vector.splat(0.5) * (hit.normal + vector.splat(1));
-            return color;
+            const direction = vector.randomOnHemisphere(rng, hit.normal);
+            const next_ray: Ray = .init(hit.point, direction);
+            return vector.splat(0.5) * self.getRayColor(
+                next_ray,
+                world,
+                rng,
+                depth - 1,
+            );
         }
 
         const unit_direction: Vec4 = vector.normalized(ray.direction);
         const a = 0.5 * (unit_direction[1] + 1.0);
-        return vector.splat(1.0 - a) * vector.initVec4(1.0, 1.0, 1.0, 1.0) + vector.splat(a) * vector.initVec4(0.5, 0.7, 1.0, 1.0);
+        return vector.splat(1.0 - a) * vector.initVec4(1.0, 1.0, 1.0, 1.0) + vector.splat(a) * vector.initVec4(1.0, 0.1725, 0.1725, 1.0);
     }
 };

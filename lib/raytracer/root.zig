@@ -1,6 +1,7 @@
 const math = @import("math");
 pub const vector = math.vector;
 pub const Interval = math.Interval;
+pub const random = math.random;
 
 pub const Canvas = @import("canvas.zig").Canvas;
 pub const Ray = @import("ray.zig").Ray;
