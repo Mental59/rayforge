@@ -119,7 +119,14 @@ pub const Camera = struct {
             0.001,
         );
         if (hit_res) |hit| {
-            const direction = vector.randomOnHemisphere(rng, hit.normal);
+            // Randomly generating a vector according to Lambertian distribution
+            // S - random point on the unit sphere
+            // P - hit point
+            // n - hit normal
+            // P + n - center of the unit sphere
+            // r - random vector on the unit sphere
+            // S = P + n + r => S - P = n + r
+            const direction = hit.normal + vector.randomOnUnitSphere(rng);
             const next_ray: Ray = .init(hit.point, direction);
             return vector.splat(0.5) * self.getRayColor(
                 next_ray,
