@@ -12,14 +12,26 @@ pub fn main(init: std.process.Init) !void {
     defer threaded.deinit();
 
     var stdout_buffer: [4096]u8 = undefined;
-    var stdout_file_writer: std.Io.File.Writer = .init(.stdout(), io, &stdout_buffer);
+    var stdout_file_writer: std.Io.File.Writer = .init(
+        .stdout(),
+        io,
+        &stdout_buffer,
+    );
     const stdout_writer = &stdout_file_writer.interface;
 
-    const result_file = try std.Io.Dir.cwd().createFile(io, "image.ppm", .{});
+    const result_file = try std.Io.Dir.cwd().createFile(
+        io,
+        "image.ppm",
+        .{},
+    );
     defer result_file.close(io);
 
     var result_file_buffer: [4096]u8 = undefined;
-    var result_file_writer: std.Io.File.Writer = .init(result_file, io, &result_file_buffer);
+    var result_file_writer: std.Io.File.Writer = .init(
+        result_file,
+        io,
+        &result_file_buffer,
+    );
     const result_writer = &result_file_writer.interface;
 
     const camera_options: Camera.Options = .{
@@ -34,7 +46,11 @@ pub fn main(init: std.process.Init) !void {
     const camera: Camera = .init(camera_options);
     try stdout_writer.print("Camera: {any}\n", .{camera});
 
-    var canvas: Canvas = try .init(camera.image_width, camera.image_height, allocator);
+    var canvas: Canvas = try .init(
+        camera.image_width,
+        camera.image_height,
+        allocator,
+    );
     defer canvas.deinit();
 
     var world: World = try .init(allocator, 1024);
@@ -54,7 +70,13 @@ pub fn main(init: std.process.Init) !void {
 
     for (0..canvas.height) |i| {
         for (0..canvas.width) |j| {
-            const pixel = camera.renderPixel(i, j, world, rng);
+            const pixel = camera.renderPixel(
+                i,
+                j,
+                world,
+                rng,
+            );
+
             canvas.setAt(
                 i,
                 j,

@@ -58,17 +58,22 @@ pub const Camera = struct {
 
         camera.viewport_width = camera.viewport_height * aspect_ratio;
 
-        // Calculate the vectors across the horizontal and down the verical viewport edges
+        // Calculate the vectors across the horizontal and
+        // down the verical viewport edges
         camera.viewport_u = .{ camera.viewport_width, 0.0, 0.0, 0.0 };
         camera.viewport_v = .{ 0, -camera.viewport_height, 0.0, 0.0 };
 
-        // Calculate the horizontal and vertical delta vectors from to pixel to pixel in the viewport
+        // Calculate the horizontal and vertical delta vectors
+        // from to pixel to pixel in the viewport
         camera.pixel_delta_u = camera.viewport_u / vector.splat(float_image_width);
         camera.pixel_delta_v = camera.viewport_v / vector.splat(float_image_height);
 
         // Calculate the location of the upper left pixel in the viewport
-        camera.viewport_upper_left_corner = camera.center - vector.initVec4(0.0, 0.0, camera.focal_length, 0.0) - camera.viewport_u / vector.splat(2.0) - camera.viewport_v / vector.splat(2.0);
-        camera.pixel00_loc = camera.viewport_upper_left_corner + vector.splat(0.5) * (camera.pixel_delta_u + camera.pixel_delta_v);
+        camera.viewport_upper_left_corner = camera.center -
+            vector.initVec4(0.0, 0.0, camera.focal_length, 0.0) -
+            camera.viewport_u / vector.splat(2.0) - camera.viewport_v / vector.splat(2.0);
+        camera.pixel00_loc = camera.viewport_upper_left_corner +
+            vector.splat(0.5) * (camera.pixel_delta_u + camera.pixel_delta_v);
 
         camera.pixel_samples_scale = 1.0 / @as(f32, @floatFromInt(camera.samples_per_pixel));
 
@@ -138,6 +143,7 @@ pub const Camera = struct {
 
         const unit_direction: Vec4 = vector.normalized(ray.direction);
         const a = 0.5 * (unit_direction[1] + 1.0);
-        return vector.splat(1.0 - a) * vector.initVec4(1.0, 1.0, 1.0, 1.0) + vector.splat(a) * vector.initVec4(1.0, 0.1725, 0.1725, 1.0);
+        return vector.splat(1.0 - a) * vector.initVec4(1.0, 1.0, 1.0, 1.0) +
+            vector.splat(a) * vector.initVec4(1.0, 0.1725, 0.1725, 1.0);
     }
 };
