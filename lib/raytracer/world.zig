@@ -1,10 +1,7 @@
 const std = @import("std");
-const primitives = @import("primitives.zig");
+const Sphere = @import("primitives/sphere.zig").Sphere;
 const Ray = @import("ray.zig").Ray;
-const Sphere = primitives.Sphere;
-const IHittable = primitives.IHittable;
-const HitResult = primitives.HitResult;
-const HitOptions = primitives.HitOptions;
+const hittable = @import("hittable.zig");
 
 pub const World = struct {
     allocator: std.mem.Allocator,
@@ -26,8 +23,8 @@ pub const World = struct {
         try self.spheres.append(self.allocator, sphere);
     }
 
-    pub fn hit(self: World, ray: Ray, min_ray_t: f32) ?HitResult {
-        var final_hit_result: ?HitResult = null;
+    pub fn hit(self: World, ray: Ray, min_ray_t: f32) ?hittable.HitResult {
+        var final_hit_result: ?hittable.HitResult = null;
         var closest_hit_t = std.math.inf(f32);
 
         for (self.spheres.items) |sphere| {

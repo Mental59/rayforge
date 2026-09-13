@@ -1,5 +1,6 @@
 const std = @import("std");
 const raytracer = @import("raytracer");
+const material = raytracer.material;
 const Canvas = raytracer.Canvas(f32);
 const World = raytracer.World;
 const Camera = raytracer.Camera;
@@ -56,12 +57,7 @@ pub fn main(init: std.process.Init) !void {
     var world: World = try .init(allocator, 1024);
     defer world.deinit();
 
-    try world.addSphere(
-        .init(.{ 0.0, 0.0, -1.0, 0.0 }, 0.5),
-    );
-    try world.addSphere(
-        .init(.{ 0.0, -100.5, -1.0, 0.0 }, 100),
-    );
+    try buildWorld(&world);
 
     var seed: u64 = undefined;
     io.random(std.mem.asBytes(&seed));
@@ -101,4 +97,56 @@ pub fn main(init: std.process.Init) !void {
 
     try stdout_writer.print("\rDone.                          \n", .{});
     try stdout_writer.flush();
+}
+
+pub fn buildWorld(world: *World) !void {
+    const material_ground: material.Material = .init(.{
+        .type = .Lambertian,
+        .albedo = .{ 0.8, 0.8, 0.0, 1.0 },
+        .fuzz = 0.0,
+    });
+    const material_center: material.Material = .init(.{
+        .type = .Lambertian,
+        .albedo = .{ 0.1, 0.2, 0.5, 1.0 },
+        .fuzz = 0.0,
+    });
+    const material_left: material.Material = .init(.{
+        .type = .Metal,
+        .albedo = .{ 0.8, 0.8, 0.8, 1.0 },
+        .fuzz = 0.3,
+    });
+    const material_right: material.Material = .init(.{
+        .type = .Metal,
+        .albedo = .{ 0.8, 0.6, 0.2, 1.0 },
+        .fuzz = 0.6,
+    });
+
+    try world.addSphere(
+        .init(
+            .{ 0.0, -100.5, -1.0, 0.0 },
+            100.0,
+            material_ground,
+        ),
+    );
+    try world.addSphere(
+        .init(
+            .{ 0.0, 0.0, -1.2, 0.0 },
+            0.5,
+            material_center,
+        ),
+    );
+    try world.addSphere(
+        .init(
+            .{ -1.0, 0.0, -1.0, 0.0 },
+            0.5,
+            material_left,
+        ),
+    );
+    try world.addSphere(
+        .init(
+            .{ 1.0, 0.0, -1.0, 0.0 },
+            0.5,
+            material_right,
+        ),
+    );
 }

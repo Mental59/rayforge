@@ -32,6 +32,18 @@ pub fn normalized(vec: Vec4) Vec4 {
     return vec / lenVec;
 }
 
+pub fn isNearZero(vec: Vec4) bool {
+    const tolerance = 1e-5;
+    return std.math.approxEqAbs(f32, vec[0], 0.0, tolerance) and
+        std.math.approxEqAbs(f32, vec[1], 0.0, tolerance) and
+        std.math.approxEqAbs(f32, vec[2], 0.0, tolerance) and
+        std.math.approxEqAbs(f32, vec[3], 0.0, tolerance);
+}
+
+pub fn reflect(v: Vec4, n: Vec4) Vec4 {
+    return v - splat(2.0 * dot(v, n)) * n;
+}
+
 /// Cross product of the XYZ components.
 /// The resulting W component is always 0.
 pub fn cross(a: Vec4, b: Vec4) Vec4 {

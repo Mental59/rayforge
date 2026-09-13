@@ -124,21 +124,23 @@ pub const Camera = struct {
             0.001,
         );
         if (hit_res) |hit| {
-            // Randomly generating a vector according to Lambertian distribution
-            // S - random point on the unit sphere
-            // P - hit point
-            // n - hit normal
-            // P + n - center of the unit sphere
-            // r - random vector on the unit sphere
-            // S = P + n + r => S - P = n + r
-            const direction = hit.normal + vector.randomOnUnitSphere(rng);
-            const next_ray: Ray = .init(hit.point, direction);
-            return vector.splat(0.5) * self.getRayColor(
-                next_ray,
-                world,
+            const scatter_res = hit.material.scatter(
+                hit.material,
+                ray,
+                hit,
                 rng,
-                depth - 1,
             );
+
+            if (scatter_res) |scatter| {
+                return scatter.attenuation * self.getRayColor(
+                    scatter.scattered,
+                    world,
+                    rng,
+                    depth - 1,
+                );
+            }
+
+            return vector.zero();
         }
 
         const unit_direction: Vec4 = vector.normalized(ray.direction);
