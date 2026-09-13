@@ -69,8 +69,4 @@ pub const Sphere = struct {
         );
         return hit_result;
     }
-
-    fn isRootInRange(root: f32, tmin: f32, tmax: f32) bool {
-        return root > tmin and root < tmax;
-    }
 };
