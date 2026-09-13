@@ -48,11 +48,20 @@ pub fn Canvas(comptime T: type) type {
             std.debug.assert(row < self.height and col < self.width);
 
             const index = self.getIndex(row, col);
-            self.data[index] = .{
-                .r = std.math.clamp(value.r, 0.0, 1.0),
-                .g = std.math.clamp(value.g, 0.0, 1.0),
-                .b = std.math.clamp(value.b, 0.0, 1.0),
-            };
+
+            var r = value.r;
+            var g = value.g;
+            var b = value.b;
+
+            r = linearToGamma(r, 2.0);
+            g = linearToGamma(g, 2.0);
+            b = linearToGamma(b, 2.0);
+
+            r = std.math.clamp(r, 0.0, 1.0);
+            g = std.math.clamp(g, 0.0, 1.0);
+            b = std.math.clamp(b, 0.0, 1.0);
+
+            self.data[index] = .{ .r = r, .g = g, .b = b };
         }
 
         pub fn writePPM(self: Self, writer: *std.Io.Writer) !void {
@@ -81,6 +90,14 @@ pub fn Canvas(comptime T: type) type {
 
         fn getIndex(self: Self, row: usize, col: usize) usize {
             return row * self.width + col;
+        }
+
+        fn linearToGamma(color: T, gamma: f32) T {
+            if (color <= 0.0) {
+                return 0.0;
+            }
+
+            return std.math.pow(T, color, 1.0 / gamma);
         }
     };
 }
