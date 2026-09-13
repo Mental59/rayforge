@@ -97,13 +97,12 @@ pub fn random3Range(rng: std.Random, min: f32, max: f32) Vec4 {
 }
 
 pub fn randomOnUnitSphere(rng: std.Random) Vec4 {
-    while (true) {
-        const p = random3Range(rng, -1.0, 1.0);
-        const len_sq = lengthSquared(p);
-        if (len_sq > 0.0 and len_sq <= 1.0) {
-            return p / splat(@sqrt(len_sq));
-        }
-    }
+    return normalized(.{
+        rng.floatNorm(f32),
+        rng.floatNorm(f32),
+        rng.floatNorm(f32),
+        0.0,
+    });
 }
 
 pub fn randomOnHemisphere(rng: std.Random, normal: Vec4) Vec4 {
