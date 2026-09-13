@@ -11,18 +11,25 @@ pub const Material = struct {
     props: MaterialProps,
     scatter: ScatterFn,
 
-    pub fn init(props: MaterialProps) Material {
-        const scatter: ScatterFn = switch (props.type) {
-            .Lambertian => lambertianScatter,
-            .Metal => metalScatter,
-        };
-
-        var material_props = props;
-        material_props.fuzz = if (material_props.fuzz < 1.0) material_props.fuzz else 1.0;
-
+    pub fn initLambertian(albedo: Vec4) Material {
         return .{
-            .props = material_props,
-            .scatter = scatter,
+            .props = .{
+                .type = .Lambertian,
+                .albedo = albedo,
+                .fuzz = 0.0,
+            },
+            .scatter = lambertianScatter,
+        };
+    }
+
+    pub fn initMetal(albedo: Vec4, fuzz: f32) Material {
+        return .{
+            .props = .{
+                .type = .Metal,
+                .albedo = albedo,
+                .fuzz = if (fuzz < 1.0) fuzz else 1.0,
+            },
+            .scatter = metalScatter,
         };
     }
 };

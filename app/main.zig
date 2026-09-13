@@ -100,53 +100,29 @@ pub fn main(init: std.process.Init) !void {
 }
 
 pub fn buildWorld(world: *World) !void {
-    const material_ground: material.Material = .init(.{
-        .type = .Lambertian,
-        .albedo = .{ 0.8, 0.8, 0.0, 1.0 },
-        .fuzz = 0.0,
-    });
-    const material_center: material.Material = .init(.{
-        .type = .Lambertian,
-        .albedo = .{ 0.1, 0.2, 0.5, 1.0 },
-        .fuzz = 0.0,
-    });
-    const material_left: material.Material = .init(.{
-        .type = .Metal,
-        .albedo = .{ 0.8, 0.8, 0.8, 1.0 },
-        .fuzz = 0.3,
-    });
-    const material_right: material.Material = .init(.{
-        .type = .Metal,
-        .albedo = .{ 0.8, 0.6, 0.2, 1.0 },
-        .fuzz = 0.6,
-    });
+    const material_ground: material.Material = .initLambertian(.{ 0.8, 0.8, 0.0, 1.0 });
+    const material_center: material.Material = .initLambertian(.{ 1.0, 1.0, 1.0, 1.0 });
+    const material_left: material.Material = .initMetal(.{ 0.8, 0.8, 0.8, 1.0 }, 0.3);
+    const material_right: material.Material = .initMetal(.{ 0.8, 0.6, 0.2, 1.0 }, 0.6);
 
-    try world.addSphere(
-        .init(
-            .{ 0.0, -100.5, -1.0, 0.0 },
-            100.0,
-            material_ground,
-        ),
-    );
-    try world.addSphere(
-        .init(
-            .{ 0.0, 0.0, -1.2, 0.0 },
-            0.5,
-            material_center,
-        ),
-    );
-    try world.addSphere(
-        .init(
-            .{ -1.0, 0.0, -1.0, 0.0 },
-            0.5,
-            material_left,
-        ),
-    );
-    try world.addSphere(
-        .init(
-            .{ 1.0, 0.0, -1.0, 0.0 },
-            0.5,
-            material_right,
-        ),
-    );
+    try world.addSphere(.init(
+        .{ 0.0, -100.5, -1.0, 0.0 },
+        100.0,
+        material_ground,
+    ));
+    try world.addSphere(.init(
+        .{ 0.0, 0.0, -1.2, 0.0 },
+        0.5,
+        material_center,
+    ));
+    try world.addSphere(.init(
+        .{ -1.0, 0.0, -1.0, 0.0 },
+        0.5,
+        material_left,
+    ));
+    try world.addSphere(.init(
+        .{ 1.0, 0.0, -1.0, 0.0 },
+        0.5,
+        material_right,
+    ));
 }
