@@ -44,6 +44,14 @@ pub fn reflect(v: Vec4, n: Vec4) Vec4 {
     return v - splat(2.0 * dot(v, n)) * n;
 }
 
+pub fn refract(v: Vec4, n: Vec4, eta: f32) Vec4 {
+    const k = 1.0 - eta * eta * (1.0 - dot(n, v) * dot(n, v));
+    if (k < 0.0) {
+        return zero();
+    }
+    return splat(eta) * v - splat(eta * dot(n, v) + @sqrt(k)) * n;
+}
+
 /// Cross product of the XYZ components.
 /// The resulting W component is always 0.
 pub fn cross(a: Vec4, b: Vec4) Vec4 {
