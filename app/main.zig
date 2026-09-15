@@ -103,6 +103,7 @@ pub fn buildWorld(world: *World) !void {
     const material_ground: material.Material = .initLambertian(.{ 0.8, 0.8, 0.0, 1.0 });
     const material_center: material.Material = .initLambertian(.{ 1.0, 1.0, 1.0, 1.0 });
     const material_left: material.Material = .initDielectric(.{ 1.0, 1.0, 1.0, 1.0 }, 1.5);
+    const material_bubble: material.Material = .initDielectric(.{ 1.0, 1.0, 1.0, 1.0 }, 1.0 / 1.5);
     const material_right: material.Material = .initMetal(.{ 0.8, 0.6, 0.2, 1.0 }, 0.6);
 
     try world.addSphere(.init(
@@ -119,6 +120,11 @@ pub fn buildWorld(world: *World) !void {
         .{ -1.0, 0.0, -1.0, 0.0 },
         0.5,
         material_left,
+    ));
+    try world.addSphere(.init(
+        .{ -1.0, 0.0, -1.0, 0.0 },
+        0.4,
+        material_bubble,
     ));
     try world.addSphere(.init(
         .{ 1.0, 0.0, -1.0, 0.0 },
